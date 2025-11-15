@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "target": "ES2021",
+        "module": "commonjs",
+        "moduleResolution": "node",
+
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+
+        "useDefineForClassFields": false,
+        "lib": ["esnext"],
+        "types": ["node"],
+
+        "rootDir": "./src",
+        "outDir": "./dist",
+
+        "sourceMap": true,
+        "strict": true,
+        "strictPropertyInitialization": false,
+        "esModuleInterop": true,
+        "skipLibCheck": true
+    },
+    "include": ["src"]
+}
