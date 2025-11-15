@@ -8,6 +8,7 @@ import { authMiddleware } from "./middlewares/authMiddeware";
 //rutas
 import authRoutes from "./routes/auth.routes";
 import projectRoutes from "./routes/project.routes";
+import taskRoutes from "./routes/task.routes";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.get("/api/health", (req, res) => {
 // --- RUTAS ---
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", authMiddleware, projectRoutes)
+app.use("/api/tasks", authMiddleware, taskRoutes);
 
 
 

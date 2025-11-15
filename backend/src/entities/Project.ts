@@ -5,8 +5,10 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from "typeorm";
 import { User } from "./User";
+import { Task } from "./Task";
 
 @Entity({ name: "projects" })
 export class Project {
@@ -24,6 +26,9 @@ export class Project {
     onDelete: "CASCADE",
   })
   owner!: User;
+
+  @OneToMany(() => Task, (task) => task.project)
+  tasks!: Task[];
 
 
   @CreateDateColumn()
