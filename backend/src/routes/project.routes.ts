@@ -6,6 +6,7 @@ import {
   handleUpdateProject,
   handleAddCollaborator,
   handleRemoveCollaborator,
+  handleGetProjectById,
 } from "../controllers/project.controller";
 import {
   handleCreateTask,
@@ -19,6 +20,7 @@ router.post("/", handleCreateProject);
 router.get("/", handleGetProjects);
 router.put("/:id", handleUpdateProject);
 router.delete("/:id", handleDeleteProject);
+router.get("/:id", handleGetProjectById);
 
 // --- Rutas de Colaboradores ---
 router.post("/:id/collaborators", handleAddCollaborator);

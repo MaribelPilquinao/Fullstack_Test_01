@@ -10,7 +10,7 @@
 - **Nombre del Candidato**: [Maribel Pilquinao]
 - **Fecha de Inicio**: [14/11/2025]
 - **Fecha de Entrega**: [16/11/2025]
-- **Tiempo Dedicado**: [Ej: ~20 horas] --pendiente
+- **Tiempo Dedicado**: [25 horas]
 
 ---
 
@@ -31,11 +31,13 @@
 
 | Tecnología | Versión | Razón de Elección |
 |------------|---------|-------------------|
-| React | 18.x | [Razón] |
-| Build Tool | Vite/CRA | [¿Por qué elegiste este?] |
-| Estado Global | Context/Redux/Zustand | [Razón] |
-| Estilos | CSS/Tailwind/MUI/etc | [Razón] |
-| Formularios | react-hook-form/Formik | [Razón] |
+| React | 19.x |Requerido por la prueba. Se usó la v19 (la última estable) |
+| Build Tool | Vite | Recomendado. Ofrece un Hot Module Replacement (HMR) instantáneo, lo que acelera el desarrollo. |
+| Estado Global | Zustand | Lo elegí por su simplicidad. Se usó para el estado de autenticación (token y usuario), con zustand/middleware/persist para guardarlo en ||   localStorage |
+| Estilos | Tailwind | Requerido (preferencia). Se usó v4, que simplifica la configuración - @import 'tailwindcss' |
+| Formularios | react-hook-form + Zod | Para manejar los formularios y zod para la validación de esquemas |
+| HTTP Client | Axios | Se configuró una instancia de axios (api.ts) con interceptors para adjuntar automáticamente el token JWT en todas las peticiones.
+| Manejo de Datos | React Query | Se usó @tanstack/react-query para manejar todo el estado del servidor (fetching, caching, invalidación). Esto simplifica isLoading/isError y el refresco automático de datos (invalidateQueries)
 
 ---
 
@@ -79,13 +81,23 @@ Esta estructura hace que el código sea altamente mantenible, escalable y fácil
 
 ```
 frontend/
-├── src/
-│   ├── [tu estructura]
-│   └── ...
+└── src/
+    ├── components/   # Componentes reutilizables (ej. ui/, projects/, tasks/)
+    ├── layouts/      # "Cascarones" de página (ej. AppLayout, ProtectedRoute)
+    ├── pages/        # Vistas completas (ej. LoginPage, ProjectsPage)
+    ├── lib/          # Configuración de servicios (ej. api.ts para Axios)
+    ├── store/        # Estado global (auth.store.ts con Zustand)
+    ├── hooks/        # Hooks personalizados (ej. useDebounce)
+    ├── types/        # Tipos de datos de la API (index.ts)
+    └── main.tsx      # Configuración de Rutas (React Router)
 ```
 
 **Razón de esta estructura:**
-[Explica por qué organizaste tu código de esta manera]
+Se usó una arquitectura basada en features/componentes.
+pages/: Vistas completas que se encargan de obtener datos.
+components/: Componentes reutilizables que reciben datos (props).
+layouts/: Definen la estructura de la página (ej. Sidebar + Header) y la lógica de protección de rutas.
+lib/ y store/: Centralizan la lógica de API y estado global, manteniéndola desacoplada de los componentes
 
 ---
 
@@ -136,27 +148,27 @@ Task: Contiene la información de la tarea, incluyendo status y priority como en
 ### Consideraciones Adicionales
 
 [¿Qué otras medidas de seguridad tomaste? ¿Qué vulnerabilidades consideraste?]
-
+Se usaron UUIDs para los IDs de las entidades para prevenir ataques de enumeración (IDOR). Toda la lógica de autorización (ej. 'solo el dueño puede editar') se maneja explícitamente en la capa de Servicio, no en el controlador
 ---
 
 ## 🎨 Decisiones de UI/UX
 
 ### Framework/Librería de UI
 
-**Elegí**: [Ninguna / Material-UI / Ant Design / TailwindCSS / etc.]
+**Elegí**: TailwindCSS
 
-**Razón**: [¿Por qué elegiste esto sobre otras opciones?]
+**Razón**: Da control total sobre el diseño y cumple la preferencia de la prueba. Se crearon componentes de UI reutilizables (Input, Modal, Select) para mantener la consistencia.
 
 ### Patrones de Diseño
 
-- **Responsive Design**: [¿Cómo lo abordaste? Mobile-first?]
-- **Loading States**: [¿Cómo manejaste los estados de carga?]
-- **Error Handling**: [¿Cómo muestras errores al usuario?]
-- **Feedback Visual**: [Toasts, modales, etc.]
+- **Responsive Design**: Implementado usando las utilidades responsivas de Tailwind
+- **Loading States**: Manejados por useQuery de React
+- **Error Handling**: Manejados por useQuery (isError) y estados locales en los formularios (apiError)
+- **Feedback Visual**: Se usaron Modales (Modal.tsx) para las acciones (Crear/Editar) y botones deshabilitados (disabled={isSubmitting})
 
 ### Decisiones de UX
 
-[Explica algunas decisiones importantes de experiencia de usuario que tomaste]
+Traté de 
 
 ---
 
@@ -181,7 +193,7 @@ Se configuró un setup.ts para conectar y desconectar la BD en los tests, y un b
 ### Cobertura
 
 - **Backend**: [5 tests]
-- **Frontend**: [X%]
+- **Frontend**: [X%] - no implementado por tiempo.
 
 [¿Por qué decidiste este nivel de cobertura dado el tiempo disponible?]
 
@@ -226,40 +238,29 @@ Por ahora, solo se usó docker-compose para los servicios de MySQL y phpMyAdmin
 
 ## 🚧 Desafíos y Soluciones
 
-### Desafío 1: [Nombre del desafío]
+### Desafío 1: Configuración de Swagger
 
 **Problema:**
-[Describe el problema que enfrentaste]
+Al usar swagger-jsdoc (basado en comentarios), la UI de Swagger no detectaba ninguna ruta. Además de que era poco práctico realizarlo de esta forma.
 
 **Solución:**
-[Cómo lo resolviste]
+Se migró a swagger-autogen, que genera un swagger-output.json analizando los archivos de rutas. Esto funcionó de inmediato.
 
 **Aprendizaje:**
-[Qué aprendiste de esto]
+Aprendí que hay una solución más efectiva de la cual yo utilzaba para documentar la API, entendí el proceso de configuración y que es más sencillo que el sabía.
 
-### Desafío 2: [Nombre del desafío]
+### Desafío 2: incluir una nueva funcionalidad en asignar colaboradores
 
 **Problema:**
-[Descripción]
+Al asignar colaboradores de un proyecto, al inicio solo habia habilitado solo para que se pueda asignar un colaborador y en mi prueba en un inicio solo consideré eso.
+Luego me di cuenta que era necesario que se realizará una asignacion multiple para cada proyecto.
 
 **Solución:**
-[Tu solución]
+Debido que era sencillo realizar ese cambio en la arquitectura del backend lo pude realizar sin problemas para luego integrarlo en el frontend.
 
 **Aprendizaje:**
-[Qué aprendiste]
+Pensar en todas las posibilidades cuando un usuario va a usar la app y qué necesitaría para poder realizar esto.
 
-### Desafío 3: [Nombre del desafío]
-
-**Problema:**
-[Descripción]
-
-**Solución:**
-[Tu solución]
-
-**Aprendizaje:**
-[Qué aprendiste]
-
----
 
 ## 🎯 Trade-offs
 
@@ -279,7 +280,7 @@ Sacrificio: No es seguro para producción (riesgo de pérdida de datos). Para pr
 ### Trade-off 2: [Decisión]
 
 **Opciones consideradas:**
-- [...]
+
 
 **Elegí**: [...]
 
@@ -304,9 +305,9 @@ Si tuviera más tiempo, implementaría:
    - Tiempo estimado: 30-40 min
 
 3. **[Mejora 3]**
-   - Descripción: [...]
-   - Beneficio: [...]
-   - Tiempo estimado: [...]
+   - Descripción: implementar Kanban (Drag-and-Drop)
+   - Beneficio: Usar @hello-pangea/dnd en la ProjectDetailPage para arrastrar y soltar tareas entre estados (Pendiente, En Progreso, Completada).
+   - Tiempo estimado: 1h estimado
 
 ---
 
@@ -314,10 +315,9 @@ Si tuviera más tiempo, implementaría:
 
 Lista de recursos que consultaste durante el desarrollo:
 
-- [Documentación oficial de TypeORM]
+- Documentación oficial de Vite, React, TypeORM, React Query, Zustand, React Hook Form, Zod y swagger-autogen.
 - [Documentación de swagger para generar automaticamente la API]
 
-- [etc.]
 
 ---
 
@@ -325,16 +325,18 @@ Lista de recursos que consultaste durante el desarrollo:
 
 ### ¿Qué salió bien?
 
-[Reflexiona sobre qué aspectos del proyecto consideras que hiciste particularmente bien]
+La combinación de React Query + Axios + Zustand funcionó muy bien.
+React Query (useQuery/useMutation) y invalidateQueries hicieron que el estado del servidor (proyectos, tareas)
+se actualizara automáticamente, creando una UI muy reactiva.
 
 ### ¿Qué mejorarías?
-
-[Con más tiempo o conocimiento, ¿qué harías diferente?]
+Habría implementado un sistema de "toasts" (notificaciones) en lugar de window.confirm o mensajes de error estáticos (apiError) para una mejor UX.
+También usar express-validator para el manejo de errores
 
 ### ¿Qué aprendiste?
 
-[¿Qué nuevas habilidades o conocimientos adquiriste durante este proyecto?]
-
+Reforcé mis conocimientos en el manejo de relaciones ManyToMany con TypeORM y en la configuración de un stack de frontend 
+moderno (Vite + TS + React Query + Zustand).
 ---
 
 ## 📸 Capturas de Pantalla
@@ -342,17 +344,22 @@ Lista de recursos que consultaste durante el desarrollo:
 [Opcional: Agrega capturas de pantalla de tu aplicación]
 
 ### Login
-![Login](./screenshots/login.png)
+![Login](./images/Login.png)
+
+![Registro](./images/registro.png)
+
+![colaboradores](./images/colab.png)
 
 ### Dashboard
-![Dashboard](./screenshots/dashboard.png)
+![Dashboard](./images/dashboard.png)
 
 ### Lista de Proyectos
-![Projects](./screenshots/projects.png)
+![Projects](./images/proyectos.png)
 
 ### Detalle de Tareas
-![Tasks](./screenshots/tasks.png)
+![Tasks](./images/tareas.png)
+![crear_tarea](./images/crear_tarea.png)
 
 ---
 
-**Fecha de última actualización**: [DD/MM/YYYY]
+**Fecha de última actualización**: [16/11/2025]

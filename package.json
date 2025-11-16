@@ -3,6 +3,9 @@
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
-    "@types/node": "^24.10.1"
+    "@tailwindcss/vite": "^4.1.17",
+    "@types/node": "^24.10.1",
+    "tailwindcss": "^4.1.17",
+    "vite": "^6.4.1"
   }
 }

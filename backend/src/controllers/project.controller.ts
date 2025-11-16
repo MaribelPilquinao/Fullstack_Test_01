@@ -1,5 +1,13 @@
 import { Request, Response } from "express";
-import { addCollaborator, createProject, deleteProject, getProjectByOwner, removeCollaborator, updateProject } from "../services/project.service";
+import {
+  addCollaborator,
+  createProject,
+  deleteProject,
+  getProjectByOwner,
+  removeCollaborator,
+  updateProject,
+  getProjectById, // <-- AÑADIDO
+} from "../services/project.service";
 import { AppError } from "../utils/AppError";
 import { successResponse } from "../utils/response";
 
@@ -11,7 +19,7 @@ export const handleCreateProject = async (req: Request, res: Response) => {
     throw new AppError("El nombre (name) del proyecto es requerido", 400);
   }
 
-  const ownerId = req.user!.id; 
+  const ownerId = req.user!.id;
   const newProject = await createProject({ name, description }, ownerId);
 
   return successResponse(res, 201, newProject);
@@ -25,6 +33,15 @@ export const handleGetProjects = async (req: Request, res: Response) => {
   const projects = await getProjectByOwner(ownerId, { page, limit });
 
   return successResponse(res, 200, projects);
+};
+
+export const handleGetProjectById = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const userId = req.user!.id;
+
+  const project = await getProjectById(id, userId);
+
+  return successResponse(res, 200, project);
 };
 
 export const handleUpdateProject = async (req: Request, res: Response) => {

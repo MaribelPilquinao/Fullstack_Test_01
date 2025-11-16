@@ -17,6 +17,31 @@ type PaginationOptions = {
   limit: number;
 };
 
+// --- IMPORTANTE: Añadimos esta función de seguridad aquí ---
+// (Copiada de task.service.ts para reutilizar la lógica de permisos)
+const checkProjectMembership = async (
+  projectId: string,
+  userId: string
+): Promise<Project> => {
+  const project = await findProjectById(projectId); // findProjectById carga 'owner' y 'collaborators'
+  if (!project) {
+    throw new AppError("Proyecto no encontrado", 404);
+  }
+
+  const isOwner = project.owner.id === userId;
+  const isCollaborator = project.collaborators.some(
+    (collab) => collab.id === userId
+  );
+
+  if (!isOwner && !isCollaborator) {
+    throw new AppError(
+      "No tienes permiso para acceder a este proyecto",
+      403
+    );
+  }
+  return project;
+};
+
 export const createProject = async (
   projectData: CreateProjectData,
   ownerId: string
@@ -113,7 +138,7 @@ export const addCollaborator = async (
 
   project.collaborators.push(userToAdd);
   await updateProjectRepo(project);
-  return project; 
+  return project;
 };
 
 export const removeCollaborator = async (
@@ -135,5 +160,13 @@ export const removeCollaborator = async (
   );
 
   await updateProjectRepo(project);
+  return project;
+};
+
+export const getProjectById = async (
+  projectId: string,
+  userId: string
+): Promise<Project> => {
+  const project = await checkProjectMembership(projectId, userId);
   return project;
 };

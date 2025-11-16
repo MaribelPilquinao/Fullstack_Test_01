@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany } from "typeorm";
+import { Column, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Project } from "./Project";
 import { Task } from "./Task";
 
@@ -19,7 +19,7 @@ export class User {
   @OneToMany(() => Project, (project) => project.owner)
   projects!: Project[];
 
-  @OneToMany(() => Task, (task) => task.assignee)
+  @ManyToMany(() => Task, (task) => task.assignees)
   assignedTasks!: Task[];
 
   @ManyToMany(() => Project, (project) => project.collaborators)

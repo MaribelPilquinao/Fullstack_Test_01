@@ -1,3 +1,7 @@
+import { Project } from "../entities/Project";
+import { Task, TaskPriority, TaskStatus } from "../entities/Task";
+import { User } from "../entities/User";
+import { findProjectById } from "../repositories/project.repository";
 import {
   createTask as createTaskRepo,
   deleteTaskById,
@@ -5,18 +9,15 @@ import {
   findTasksByProjectId,
   saveTask,
 } from "../repositories/task.repository";
-import { findProjectById } from "../repositories/project.repository";
-import { AppError } from "../utils/AppError";
-import { Task, TaskPriority, TaskStatus } from "../entities/Task";
 import { findUserById } from "../repositories/user.repository";
-import { Project } from "../entities/Project";
+import { AppError } from "../utils/AppError";
 
 type TaskInputData = {
   name: string;
   description?: string | null;
   status?: TaskStatus;
   priority?: TaskPriority;
-  assigneeId?: string | null;
+  assigneeIds?: string[] | null;
 };
 
 type TaskFilters = {
@@ -29,7 +30,7 @@ const checkProjectMembership = async (
   projectId: string,
   userId: string
 ): Promise<Project> => {
-  const project = await findProjectById(projectId); 
+  const project = await findProjectById(projectId);
   if (!project) {
     throw new AppError("Proyecto no encontrado", 404);
   }
@@ -48,7 +49,6 @@ const checkProjectMembership = async (
   return project;
 };
 
-
 export const createTask = async (
   projectId: string,
   taskData: TaskInputData,
@@ -56,22 +56,24 @@ export const createTask = async (
 ): Promise<Task> => {
   const project = await checkProjectMembership(projectId, userId);
 
-  if (taskData.assigneeId) {
-    const assignee = await findUserById(taskData.assigneeId);
-    if (!assignee) {
-      throw new AppError("El usuario asignado no existe", 404);
-    }
+  if (taskData.assigneeIds && taskData.assigneeIds.length > 0) {
+    for (const assigneeId of taskData.assigneeIds) {
+      const assignee = await findUserById(assigneeId);
+      if (!assignee) {
+        throw new AppError(`El usuario asignado con ID ${assigneeId} no existe`, 404);
+      }
 
-    const isAssigneeOwner = project.owner.id === taskData.assigneeId;
-    const isAssigneeCollaborator = project.collaborators.some(
-      (collab) => collab.id === taskData.assigneeId
-    );
-
-    if (!isAssigneeOwner && !isAssigneeCollaborator) {
-      throw new AppError(
-        "Solo puedes asignar tareas a miembros (dueño o colaboradores) del proyecto",
-        400
+      const isAssigneeOwner = project.owner.id === assigneeId;
+      const isAssigneeCollaborator = project.collaborators.some(
+        (collab) => collab.id === assigneeId
       );
+
+      if (!isAssigneeOwner && !isAssigneeCollaborator) {
+        throw new AppError(
+          `El usuario ${assignee.fullName} no es miembro del proyecto y no puede ser asignado.`,
+          400
+        );
+      }
     }
   }
 
@@ -81,7 +83,7 @@ export const createTask = async (
     description: taskData.description || null,
     status: taskData.status || TaskStatus.PENDIENTE,
     priority: taskData.priority || TaskPriority.MEDIA,
-    assigneeId: taskData.assigneeId || undefined,
+    assigneeIds: taskData.assigneeIds || [],
     projectId: projectId,
   });
 };
@@ -92,7 +94,6 @@ export const getTasksByProject = async (
   filters: TaskFilters
 ): Promise<Task[]> => {
   await checkProjectMembership(projectId, userId);
-
   return await findTasksByProjectId(projectId, filters);
 };
 
@@ -108,25 +109,28 @@ export const updateTask = async (
 
   const project = await checkProjectMembership(task.project.id, userId);
 
-  if (
-    updateData.assigneeId &&
-    updateData.assigneeId !== (task.assignee?.id || null)
-  ) {
-    const assignee = await findUserById(updateData.assigneeId);
-    if (!assignee) {
-      throw new AppError("El nuevo usuario asignado no existe", 404);
-    }
-    
-    const isAssigneeOwner = project.owner.id === updateData.assigneeId;
-    const isAssigneeCollaborator = project.collaborators.some(
-      (collab) => collab.id === updateData.assigneeId
-    );
-    if (!isAssigneeOwner && !isAssigneeCollaborator) {
-      throw new AppError(
-        "Solo puedes asignar tareas a miembros del proyecto",
-        400
+  if (updateData.assigneeIds) {
+    const newAssignees: User[] = [];
+    for (const assigneeId of updateData.assigneeIds) {
+      const assignee = await findUserById(assigneeId);
+      if (!assignee) {
+        throw new AppError(`El usuario asignado con ID ${assigneeId} no existe`, 404);
+      }
+
+      const isAssigneeOwner = project.owner.id === assigneeId;
+      const isAssigneeCollaborator = project.collaborators.some(
+        (collab) => collab.id === assigneeId
       );
+      if (!isAssigneeOwner && !isAssigneeCollaborator) {
+        throw new AppError(
+          `El usuario ${assignee.fullName} no es miembro del proyecto y no puede ser asignado.`,
+          400
+        );
+      }
+      newAssignees.push(assignee);
     }
+    task.assignees = newAssignees;
+    delete updateData.assigneeIds;
   }
 
   Object.assign(task, updateData);
@@ -138,8 +142,6 @@ export const deleteTask = async (taskId: string, userId: string): Promise<void> 
   if (!task) {
     throw new AppError("Tarea no encontrada", 404);
   }
-
   await checkProjectMembership(task.project.id, userId);
-
   await deleteTaskById(taskId);
 };

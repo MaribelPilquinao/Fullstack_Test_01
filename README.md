@@ -199,31 +199,93 @@ Si tienes dudas sobre los requisitos, no dudes en contactarnos.
 > **Nota**: Completa esta sección con las instrucciones para ejecutar tu proyecto.
 
 ## Prerrequisitos
-[Tus prerrequisitos]
+Node.js:v20+
+
+NPM: v10 o superior.
+
+Docker Desktop: Es necesario para levantar la base de datos MySQL y el gestor phpMyAdmin
 
 ## Instalación
 ```bash
-# Tus comandos
+git clone [https://github.com/MaribelPilquinao/Fullstack_Test_01.git]
+cd [Fullstack_Test_01]
 ```
 
 ## Configuración
 ```bash
-# Variables de entorno
+# Puerto del servidor API
+PORT=3000
+
+# Base de Datos (debe coincidir con docker-compose.yml)
+DB_HOST=localhost
+DB_PORT=3308 # ¡Importante! Usamos el 3308 para exponerlo
+DB_NAME=project_management
+DB_USER=user
+DB_PASSWORD=password
+
+# JWT
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_EXPIRES_IN=7d
+
+front:
+# API Configuration
+VITE_API_URL=http://localhost:3000/api
 ```
+
 
 ## Ejecución
 ```bash
 # Backend
+cd backend
+npm install
 # Frontend
+cd frontend
+npm install
 ```
+Necesitarás 3 terminales abiertas.
+
+Terminal 1: Base de Datos (Docker) En la carpeta raíz del proyecto (Fullstack_Test_01/), levanta los servicios de MySQL y phpMyAdmin:
+docker-compose up -d
+
+Puedes acceder a phpMyAdmin en: http://localhost:8080
+
+(Usuario: root, Contraseña: rootpassword, Servidor: db)
+
+Terminal 2: Servidor Backend Navega a la carpeta backend/ y ejecuta:
+npm run dev
+El backend correrá en http://localhost:3000
+
+Terminal 3: Aplicación Frontend Navega a la carpeta frontend/ y ejecuta:
+npm run dev
+El frontend correrá en http://localhost:5173 (o el puerto que Vite indique).
+Abre http://localhost:5173 en tu navegador para usar la app
 
 ## Tests
 ```bash
 # Comandos de tests
 ```
+Para ejecutar los 5 tests de integración del backend:
+
+Asegúrate de que la base de datos Docker (Paso 1 de Ejecución) esté corriendo.
+
+En la terminal del backend (backend/), ejecuta:
+npm test
 
 ## API Documentation
-- Swagger: [Tu URL]
+API Documentation
+La documentación de la API (generada con Swagger/OpenAPI) está disponible una vez que el backend esté corriendo.
+
+- Swagger: [[Tu URL](http://localhost:3000/api-docs)]
 
 ## Credenciales de Prueba
-[Si aplica]
+Puedes crear un nuevo usuario directamente desde la interfaz gráfica.
+
+Ve a http://localhost:5173/register.
+
+Regístrate (ej. test@example.com / password123).
+
+usuario de prueba:
+user: maribel@gmail.com
+pass: 123456
+
+
