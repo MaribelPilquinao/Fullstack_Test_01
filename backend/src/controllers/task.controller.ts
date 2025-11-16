@@ -28,7 +28,15 @@ export const handleGetTasksByProject = async (req: Request, res: Response) => {
   const { projectId } = req.params;
   const userId = req.user!.id;
 
-  const tasks = await getTasksByProject(projectId, userId);
+  const { status, priority, assigneeId } = req.query;
+
+  const filters = {
+    status: status as TaskStatus,
+    priority: priority as TaskPriority,
+    assigneeId: assigneeId as string,
+  };
+
+  const tasks = await getTasksByProject(projectId, userId, filters);
   return successResponse(res, 200, tasks);
 };
 

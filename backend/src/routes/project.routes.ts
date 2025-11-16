@@ -1,16 +1,31 @@
 import { Router } from "express";
-import { handleCreateProject, handleDeleteProject, handleGetProjects, handleUpdateProject } from "../controllers/project.controller";
-import { handleCreateTask, handleGetTasksByProject } from "../controllers/task.controller";
+import {
+  handleCreateProject,
+  handleDeleteProject,
+  handleGetProjects,
+  handleUpdateProject,
+  handleAddCollaborator,
+  handleRemoveCollaborator,
+} from "../controllers/project.controller";
+import {
+  handleCreateTask,
+  handleGetTasksByProject,
+} from "../controllers/task.controller";
 
 const router = Router();
 
-
+// --- Rutas de Proyectos ---
 router.post("/", handleCreateProject);
 router.get("/", handleGetProjects);
-router.put("/:id", handleUpdateProject)
-router.delete("/:id", handleDeleteProject)
+router.put("/:id", handleUpdateProject);
+router.delete("/:id", handleDeleteProject);
 
-//Task routes
+// --- Rutas de Colaboradores ---
+router.post("/:id/collaborators", handleAddCollaborator);
+router.delete("/:id/collaborators/:userId", handleRemoveCollaborator);
+
+// --- Rutas Anidadas de Tareas ---
 router.post("/:projectId/tasks", handleCreateTask);
 router.get("/:projectId/tasks", handleGetTasksByProject);
+
 export default router;

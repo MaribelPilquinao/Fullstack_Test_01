@@ -14,6 +14,12 @@ type CreateTaskInput = Pick<
   assigneeId?: string;
 };
 
+type TaskFilters = {
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  assigneeId?: string;
+};
+
 export const createTask = async (
   taskData: CreateTaskInput
 ): Promise<Task> => {
@@ -32,13 +38,35 @@ export const createTask = async (
 };
 
 export const findTasksByProjectId = async (
-  projectId: string
+  projectId: string,
+  filters: TaskFilters
 ): Promise<Task[]> => {
-  return await taskRepository.find({
-    where: { project: { id: projectId } },
-    relations: ["assignee"],
-    order: { createdAt: "ASC" },
-  });
+  const qb = taskRepository.createQueryBuilder("task");
+
+  qb.where("task.projectId = :projectId", { projectId });
+
+  if (filters.status) {
+    qb.andWhere("task.status = :status", { status: filters.status });
+  }
+
+  if (filters.priority) {
+    qb.andWhere("task.priority = :priority", { priority: filters.priority });
+  }
+
+  if (filters.assigneeId) {
+    if (filters.assigneeId === "null") {
+      qb.andWhere("task.assigneeId IS NULL");
+    } else {
+      qb.andWhere("task.assigneeId = :assigneeId", {
+        assigneeId: filters.assigneeId,
+      });
+    }
+  }
+
+  qb.leftJoinAndSelect("task.assignee", "assignee");
+  qb.orderBy("task.createdAt", "ASC");
+
+  return await qb.getMany();
 };
 
 export const findTaskById = async (taskId: string): Promise<Task | null> => {

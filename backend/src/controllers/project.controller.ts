@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createProject, deleteProject, getProjectByOwner, updateProject } from "../services/project.service";
+import { addCollaborator, createProject, deleteProject, getProjectByOwner, removeCollaborator, updateProject } from "../services/project.service";
 import { AppError } from "../utils/AppError";
 import { successResponse } from "../utils/response";
 
@@ -19,7 +19,10 @@ export const handleCreateProject = async (req: Request, res: Response) => {
 
 export const handleGetProjects = async (req: Request, res: Response) => {
   const ownerId = req.user!.id;
-  const projects = await getProjectByOwner(ownerId);
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+
+  const projects = await getProjectByOwner(ownerId, { page, limit });
 
   return successResponse(res, 200, projects);
 };
@@ -42,4 +45,25 @@ export const handleDeleteProject = async (req: Request, res: Response) => {
   await deleteProject(id, userId);
 
   return res.status(204).send();
+};
+
+export const handleAddCollaborator = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+  const currentUserId = req.user!.id;
+
+  if (!userId) {
+    throw new AppError("El 'userId' es requerido", 400);
+  }
+
+  const updatedProject = await addCollaborator(id, userId, currentUserId);
+  return successResponse(res, 200, updatedProject);
+};
+
+export const handleRemoveCollaborator = async (req: Request, res: Response) => {
+  const { id, userId } = req.params;
+  const currentUserId = req.user!.id;
+
+  const updatedProject = await removeCollaborator(id, userId, currentUserId);
+  return successResponse(res, 200, updatedProject);
 };

@@ -17,25 +17,31 @@ export const saveProject = async(
     return await projectRepository.save(newProject);
 }
 
-export const findProjectByOwnerId = async (ownerId: string):Promise<Project[]> =>{
-    return await projectRepository.find({
-        where: {
-            owner: {
-                id: ownerId,
-            },
-        },
-        order: {
-            createdAt: "DESC",
-        }
-    })
-}
+export const findProjectByOwnerId = async (
+  ownerId: string,
+  options: { take: number; skip: number }
+): Promise<Project[]> => {
+  return await projectRepository.find({
+    where: {
+      owner: {
+        id: ownerId,
+      },
+    },
+    order: {
+      createdAt: "DESC",
+    },
+    take: options.take,
+    skip: options.skip,
+    relations: ["collaborators"],
+  });
+};
 
 export const findProjectById = async (
   projectId: string
 ): Promise<Project | null> => {
   return await projectRepository.findOne({
     where: { id: projectId },
-    relations: ["owner"],
+    relations: ["owner", "collaborators"],
   });
 };
 

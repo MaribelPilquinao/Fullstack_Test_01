@@ -1,3 +1,4 @@
+import { Like, Not } from "typeorm";
 import { AppDataSource } from "../config/data-source";
 import { User } from "../entities/User";
 
@@ -15,3 +16,16 @@ export const saveUser = async (userData: Partial<User>): Promise<User> => {
 export const findUserById = async (id: string): Promise<User | null> => {
   return await userRepository.findOneBy({ id: id});
 }
+
+export const searchUsers = async (
+  query: string,
+  currentUserId: string
+): Promise<Omit<User, "passwordHash">[]> => {
+  return await userRepository.find({
+    where: [
+      { email: Like(`%${query}%`), id: Not(currentUserId) },
+      { fullName: Like(`%${query}%`), id: Not(currentUserId) },
+    ],
+    select: ["id", "email", "fullName"],
+  });
+};

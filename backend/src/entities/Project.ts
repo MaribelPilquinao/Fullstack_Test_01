@@ -6,6 +6,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  ManyToMany,
+  JoinTable,
 } from "typeorm";
 import { User } from "./User";
 import { Task } from "./Task";
@@ -30,6 +32,13 @@ export class Project {
   @OneToMany(() => Task, (task) => task.project)
   tasks!: Task[];
 
+  @ManyToMany(() => User, (user) => user.collaboratedProjects)
+  @JoinTable({
+    name: "project_collaborators_users",
+    joinColumn: { name: "projectId", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "userId", referencedColumnName: "id" },
+  })
+  collaborators!: User[];
 
   @CreateDateColumn()
   createdAt!: Date;
